@@ -10,6 +10,7 @@
 local io		= require "io";
 local os		= require "os";
 local string		= require "string";
+local rmHelpers		= require "helpers";
 
 local gConfPath <const>	= "./rollmeow.cfg.lua";
 
@@ -57,20 +58,75 @@ end
 
 local function
 doMatch(s, pattern)
-	return s:match(pattern);
-end
-
-
-if #arg ~= 1 then
-	perrf("Usage:\n\trollmeow <PKGNAME>");
+	return s:match(pattern:gsub("%-", "%%-"));
 end
 
 local conf = safeDoFile(gConfPath);
+local confFormat = {
+	evalDownstream	= { type = "function" },
+	fetchUpstream	= { type = "function" },
+	cachePath	= { type = "string" },
+	packages	= { type = "table" },
+};
+local ok, msg = rmHelpers.validateTable(confFormat, conf);
+if not ok then
+	perrf("Invalid configuration: %s", msg);
+end
+
+local pkgFormat = {
+	url		= { type = "string" },
+	regex		= { type = "string" },
+	postMatch	= { type = "function", optional = true },
+	filter		= { type = "function", optional = true },
+};
+for name, pkg in pairs(conf.packages) do
+	local ok, msg = rmHelpers.validateTable(pkgFormat, pkg);
+	if not ok then
+		perrf("Invalid package %s: %s", name, msg);
+	end
+end
+
 
 local fetchUpstream = conf.fetchUpstream;
 local evalDownstrean = conf.evalDownstream;
 
-for name, pkg in pairs(conf.items) do
+local function
+cmdSync()
+end
+
+local function
+cmdReport()
+end
+
+local function
+cmdHelp()
+	io.stderr:write(
+[==[
+Usage: rollmeow [options] <sync|report>
+]==]);
+end
+
+local cmds = {
+	sync	= cmdSync,
+	report	= cmdReport,
+	help	= cmdHelp,
+};
+
+if not arg[1] then
+	cmdHelp();
+	os.exit(-1);
+end
+
+local cmd = cmds[arg[1]];
+if not cmd then
+	pwarnf("Unknown command %s", cmd);
+	cmdHelp();
+	os.exit(-1);
+else
+	cmd(arg);
+end
+
+for name, pkg in pairs(conf.packages) do
 	local upver = doMatch(conf.fetchUpstream(pkg.url), pkg.regex);
 	if not upver then
 		pwarnf("%s: No match on upstream", name);
