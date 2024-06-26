@@ -1,6 +1,6 @@
-local items = {};
+local pkgs = {};
 
-items["abseil-cpp"] = {
+pkgs["abseil-cpp"] = {
 	url = "https://github.com/abseil/abseil-cpp/tags",
 	regex = "(%d%d%d%d%d%d%d%d%.%d).tar.gz"
 };
@@ -20,7 +20,8 @@ end
 
 return
 {
-	evalDownstream = evalDownstream,
-	fetchUpstream = fetchUpstream,
-	items = items,
+	evalDownstream	= evalDownstream,
+	fetchUpstream	= fetchUpstream,
+	cachePath	= "cache.lua",
+	packages	= pkgs,
 };
