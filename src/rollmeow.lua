@@ -10,7 +10,10 @@
 local io		= require "io";
 local os		= require "os";
 local string		= require "string";
+
 local rmHelpers		= require "helpers";
+local rmVersion		= require "version";
+local rmSync		= require "sync";
 
 local gConfPath <const>	= "./rollmeow.cfg.lua";
 
@@ -91,7 +94,19 @@ local fetchUpstream = conf.fetchUpstream;
 local evalDownstrean = conf.evalDownstream;
 
 local function
-cmdSync()
+cmdSync(arg)
+	local pkg = conf.packages[arg[2]];
+	if not pkg then
+		perrf("package %s not found", arg[2]);
+	end
+
+	local ok, ret = rmSync.sync(fetchUpstream, pkg);
+
+	if ok then
+		print(rmVersion.verString(ret));
+	else
+		pwarnf("%s: failed to sync: %s", arg[2], ret);
+	end
 end
 
 local function
@@ -124,15 +139,4 @@ if not cmd then
 	os.exit(-1);
 else
 	cmd(arg);
-end
-
-for name, pkg in pairs(conf.packages) do
-	local upver = doMatch(conf.fetchUpstream(pkg.url), pkg.regex);
-	if not upver then
-		pwarnf("%s: No match on upstream", name);
-		goto continue
-	end
-	local downver = conf.evalDownstream(name);
-	print(("%s: upstream - %s, downstream %s"):format(name, upver, downver));
-::continue::
 end

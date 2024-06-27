@@ -35,6 +35,12 @@ validateTable(expect, obj)
 	return true;
 end
 
+local function
+fmtErr(place, err)
+	return false, ("error in %s: %s"):format(place, tostring(err));
+end
+
 return {
 	validateTable	= validateTable,
+	fmtErr		= fmtErr,
        };
