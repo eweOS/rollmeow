@@ -22,6 +22,6 @@ return
 {
 	evalDownstream	= evalDownstream,
 	fetchUpstream	= fetchUpstream,
-	cachePath	= "cache.lua",
+	cachePath	= "rollmeow.cache.lua",
 	packages	= pkgs,
 };

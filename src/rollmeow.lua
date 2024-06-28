@@ -14,6 +14,7 @@ local string		= require "string";
 local rmHelpers		= require "helpers";
 local rmVersion		= require "version";
 local rmSync		= require "sync";
+local rmCache		= require "cache";
 
 local gConfPath <const>	= "./rollmeow.cfg.lua";
 
@@ -76,6 +77,11 @@ if not ok then
 	perrf("Invalid configuration: %s", msg);
 end
 
+local cache, msg = rmCache.Cache(conf.cachePath);
+if not cache then
+	perr(msg);
+end
+
 local pkgFormat = {
 	url		= { type = "string" },
 	regex		= { type = "string" },
@@ -95,22 +101,43 @@ local evalDownstrean = conf.evalDownstream;
 
 local function
 cmdSync(arg)
-	local pkg = conf.packages[arg[2]];
+	local name = arg[2];
+
+	local pkg = conf.packages[name];
 	if not pkg then
-		perrf("package %s not found", arg[2]);
+		perrf("%s: not found", name);
 	end
 
 	local ok, ret = rmSync.sync(fetchUpstream, pkg);
 
 	if ok then
-		print(rmVersion.verString(ret));
+		cache:update(name, ret);
 	else
 		pwarnf("%s: failed to sync: %s", arg[2], ret);
 	end
 end
 
 local function
-cmdReport()
+cmdReport(arg)
+	local name = arg[2];
+
+	local pkg = conf.packages[name];
+	if not pkg then
+		perrf("%s: not found", name);
+	end
+
+	local upVer = cache:query(name);
+	if not upVer then
+		perrf("%s: not cached", name);
+	end
+
+	local ok, downVer = pcall(conf.evalDownstream, name);
+	if not downVer then
+		pwarnf("%s: failed to eval downstream version: %s", name, downVer);
+	end
+
+	local upStr = rmVersion.verString(upVer);
+	print(("%s: upstream %s | downstream %s"):format(name, upStr, downVer));
 end
 
 local function
@@ -139,4 +166,9 @@ if not cmd then
 	os.exit(-1);
 else
 	cmd(arg);
+end
+
+local ok, ret = cache:close();
+if not ok then
+	perr(ret);
 end
