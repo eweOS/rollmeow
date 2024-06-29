@@ -16,8 +16,6 @@ local rmVersion		= require "version";
 local rmSync		= require "sync";
 local rmCache		= require "cache";
 
-local gConfPath <const>	= "./rollmeow.cfg.lua";
-
 local function
 pwarn(msg)
 	io.stderr:write(msg .. "\n");
@@ -60,7 +58,53 @@ safeDoFile(path)
 	return ret;
 end
 
-local conf = safeDoFile(gConfPath);
+local function
+printHelp()
+	io.stderr:write(
+[==[
+Usage: rollmeow [options] [PKGNAME1] [PKGNAME2] ...
+]==]);
+end
+
+local options = {
+	sync	= false,
+	diff	= false,
+	json	= false,
+	help	= false,
+	conf	= os.getenv("HOME") .. "/.cache/rollmeow/rollmeow.cfg.lua",
+};
+local i, pkgs = 1, {};
+while i <= #arg do
+	local s = arg[i];
+	if s:sub(1, 2) == "--" then
+		s = s:sub(3, -1);	-- strip "--"
+
+		local v = options[s];
+		if v == nil then
+			perrf("Unknown option %s", s);
+		end
+
+		if type(v) == "boolean" then
+			options[s] = not v;
+		elseif type(v) == "string" then
+			if i + 1 > #arg then
+				perrf("Option %s requires an argument", s);
+			end
+			i = i + 1;
+			options[s] = arg[i];
+		end
+	else
+		table.insert(pkgs, arg[i]);
+	end
+	i = i + 1;
+end
+
+if options.help then
+	printHelp();
+	os.exit(0);
+end
+
+local conf = safeDoFile(options.conf);
 local confFormat = {
 	evalDownstream	= { type = "function" },
 	fetchUpstream	= { type = "function" },
@@ -89,7 +133,6 @@ for name, pkg in pairs(conf.packages) do
 		perrf("Invalid package %s: %s", name, msg);
 	end
 end
-
 
 local fetchUpstream = conf.fetchUpstream;
 local evalDownstrean = conf.evalDownstream;
@@ -122,55 +165,20 @@ doReport(name)
 		perrf("%s: not cached", name);
 	end
 
-	local ok, downVer = pcall(conf.evalDownstream, name);
-	if not downVer then
+	local ok, downStr = pcall(conf.evalDownstream, name);
+	if not downStr then
 		pwarnf("%s: failed to eval downstream version: %s", name, downVer);
 	end
 
-	local upStr = rmVersion.verString(upVer);
-	print(("%s: upstream %s | downstream %s"):format(name, upStr, downVer));
-end
-
-local function
-printHelp()
-	io.stderr:write(
-[==[
-Usage: rollmeow [options] <sync|report>
-]==]);
-end
-
-local options = {
-	sync		= false,
-	outdated	= false,
-	json		= false,
-	help		= false,
-	conf		= "",
-};
-local i, pkgs = 1, {};
-while i <= #arg do
-	local s = arg[i];
-	if s:sub(1, 2) == "--" then
-		s = s:sub(3, -1);	-- strip "--"
-
-		local v = options[s];
-		if v == nil then
-			perrf("Unknown option %s", s);
-		end
-
-		if type(v) == "boolean" then
-			options[s] = not v;
-		elseif type(v) == "string" then
-			if i + 1 > #arg then
-				perrf("Option %s requires an argument", s);
-			end
-			i = i + 1;
-			options[s] = arg[i];
-		end
-	else
-		table.insert(pkgs, arg[i]);
+	local downVer = rmVersion.convert(downStr);
+	if options.diff and rmVersion.cmp(downVer, upVer) then
+		return;
 	end
-	i = i + 1;
+
+	local upStr = rmVersion.verString(upVer);
+	print(("%s: upstream %s | downstream %s"):format(name, upStr, downStr));
 end
+
 
 --[[	enumerate all packages	]]
 if #pkgs == 0 then

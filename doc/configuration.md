@@ -12,7 +12,7 @@ For options,
 
 - `--conf CONF`: use `CONF` as configuration file
 - `--sync`: sync package cache before reporting
-- `--outdated`: only print outdated packages
+- `--diff`: only print outdated packages
 - `--json`: JSON format output
 
 ## Configuration File Format
