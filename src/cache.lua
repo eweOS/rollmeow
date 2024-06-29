@@ -10,6 +10,7 @@ local io		= require "io";
 local string		= require "string";
 
 local rmHelpers		= require "helpers";
+local rmVersion		= require "version";
 
 local fmtErr = rmHelpers.fmtErr;
 
@@ -88,8 +89,12 @@ cacheMeta.close = function(cache)
 	return true;
 end
 
--- TODO: update only differs?
+local vCmp = rmVersion.cmp;
 cacheMeta.update = function(cache, pkgname, ver)
+	local old = cache.vers[pkgname];
+	if old and vCmp(old, ver) == 0 then
+		return;
+	end
 	cache.news[pkgname] = ver;
 end
 
