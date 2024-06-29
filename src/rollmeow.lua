@@ -60,11 +60,6 @@ safeDoFile(path)
 	return ret;
 end
 
-local function
-doMatch(s, pattern)
-	return s:match(pattern:gsub("%-", "%%-"));
-end
-
 local conf = safeDoFile(gConfPath);
 local confFormat = {
 	evalDownstream	= { type = "function" },
@@ -100,9 +95,7 @@ local fetchUpstream = conf.fetchUpstream;
 local evalDownstrean = conf.evalDownstream;
 
 local function
-cmdSync(arg)
-	local name = arg[2];
-
+doSync(name)
 	local pkg = conf.packages[name];
 	if not pkg then
 		perrf("%s: not found", name);
@@ -118,9 +111,7 @@ cmdSync(arg)
 end
 
 local function
-cmdReport(arg)
-	local name = arg[2];
-
+doReport(name)
 	local pkg = conf.packages[name];
 	if not pkg then
 		perrf("%s: not found", name);
@@ -141,31 +132,62 @@ cmdReport(arg)
 end
 
 local function
-cmdHelp()
+printHelp()
 	io.stderr:write(
 [==[
 Usage: rollmeow [options] <sync|report>
 ]==]);
 end
 
-local cmds = {
-	sync	= cmdSync,
-	report	= cmdReport,
-	help	= cmdHelp,
+local options = {
+	sync		= false,
+	outdated	= false,
+	json		= false,
+	help		= false,
+	conf		= "",
 };
+local i, pkgs = 1, {};
+while i <= #arg do
+	local s = arg[i];
+	if s:sub(1, 2) == "--" then
+		s = s:sub(3, -1);	-- strip "--"
 
-if not arg[1] then
-	cmdHelp();
-	os.exit(-1);
+		local v = options[s];
+		if v == nil then
+			perrf("Unknown option %s", s);
+		end
+
+		if type(v) == "boolean" then
+			options[s] = not v;
+		elseif type(v) == "string" then
+			if i + 1 > #arg then
+				perrf("Option %s requires an argument", s);
+			end
+			i = i + 1;
+			options[s] = arg[i];
+		end
+	else
+		table.insert(pkgs, arg[i]);
+	end
+	i = i + 1;
 end
 
-local cmd = cmds[arg[1]];
-if not cmd then
-	pwarnf("Unknown command %s", cmd);
-	cmdHelp();
-	os.exit(-1);
-else
-	cmd(arg);
+--[[	enumerate all packages	]]
+if #pkgs == 0 then
+	for name, _ in pairs(conf.packages) do
+		table.insert(pkgs, name);
+	end
+	table.sort(pkgs);
+end
+
+if options.sync then
+	for _, pkg in ipairs(pkgs) do
+		doSync(pkg);
+	end
+end
+
+for _, pkg in ipairs(pkgs) do
+	doReport(pkg);
 end
 
 local ok, ret = cache:close();

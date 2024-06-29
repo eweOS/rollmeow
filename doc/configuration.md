@@ -5,15 +5,15 @@ An update checker.
 ## Usage
 
 ```
-	rollmeow [options] <sync|report>
-
-	rollmeow sync [pkgname]
-	rollmeow report [pkgname]
+	rollmeow [options] [PKGNAME1] [PKGNAME2] ...
 ```
 
 For options,
 
-- `-c CONF`: use `CONF` as configuration file
+- `--conf CONF`: use `CONF` as configuration file
+- `--sync`: sync package cache before reporting
+- `--outdated`: only print outdated packages
+- `--json`: JSON format output
 
 ## Configuration File Format
 
