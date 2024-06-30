@@ -73,6 +73,7 @@ local options = {
 	diff	= false,
 	json	= false,
 	help	= false,
+	verbose	= false,
 	conf	= os.getenv("HOME") .. "/.config/rollmeow/rollmeow.cfg.lua",
 };
 local i, pkgs = 1, {};
@@ -192,6 +193,9 @@ end
 
 if options.sync then
 	for _, pkg in ipairs(pkgs) do
+		if options.verbose then
+			pwarnf("syncing %s", pkg);
+		end
 		doSync(pkg);
 	end
 end
