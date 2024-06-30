@@ -73,7 +73,7 @@ local options = {
 	diff	= false,
 	json	= false,
 	help	= false,
-	conf	= os.getenv("HOME") .. "/.cache/rollmeow/rollmeow.cfg.lua",
+	conf	= os.getenv("HOME") .. "/.config/rollmeow/rollmeow.cfg.lua",
 };
 local i, pkgs = 1, {};
 while i <= #arg do
