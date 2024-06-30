@@ -44,8 +44,10 @@ safeDoFile(path)
 		perrf("Cannot load configuration:\n %s", msg);
 	end
 
-	-- TODO: Run in sandbox
-	local fcfg, msg = load(f:read("a"));
+	local env = {};
+	env._G = env;
+	local fcfg, msg = load(f:read("a"), path, "t",
+			       setmetatable(env, { __index = _G }));
 	if not fcfg then
 		perrf("Cannot parse configuration:\n%s", msg);
 	end
