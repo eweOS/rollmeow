@@ -152,7 +152,7 @@ doSync(name)
 	if ok then
 		cache:update(name, ret);
 	else
-		pwarnf("%s: failed to sync: %s", arg[2], ret);
+		pwarnf("%s: failed to sync: %s", name, ret);
 	end
 end
 
