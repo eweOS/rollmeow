@@ -69,11 +69,7 @@ serializeVer(v)
 	return s;
 end
 
-cacheMeta.close = function(cache)
-	if cache.flushed then
-		return;
-	end
-
+cacheMeta.flush = function(cache)
 	local cacheF, msg = io.open(cache.path, "a");
 	if not cacheF then
 		return fmtErr("flushing package cache", msg);
@@ -84,8 +80,6 @@ cacheMeta.close = function(cache)
 	end
 
 	cacheF:close();
-	cache.flushed = true;
-
 	return true;
 end
 

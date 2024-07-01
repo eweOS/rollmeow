@@ -147,7 +147,16 @@ doSync(name)
 		perrf("%s: not found", name);
 	end
 
-	local ok, ret = rmSync.sync(fetchUpstream, pkg);
+	local ok, ret;
+	for i = 1, 5 do
+		ok, ret = rmSync.sync(fetchUpstream, pkg);
+		if ok then
+			break;
+		end
+		if options.verbose then
+			pwarnf(("%s: failed to sync, retry %d"):format(name, i));
+		end
+	end
 
 	if ok then
 		cache:update(name, ret);
@@ -198,13 +207,13 @@ if options.sync then
 		end
 		doSync(pkg);
 	end
+
+	local ok, ret = cache:flush();
+	if not ok then
+		pwarn(ret);
+	end
 end
 
 for _, pkg in ipairs(pkgs) do
 	doReport(pkg);
-end
-
-local ok, ret = cache:close();
-if not ok then
-	perr(ret);
 end
