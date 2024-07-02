@@ -14,6 +14,7 @@ For options,
 - `--sync`: sync package cache before reporting
 - `--diff`: only print outdated packages
 - `--json`: JSON format output
+- `--showmatch`: show regex matches, useful for debugging
 - `--verbose`: be verbose
 
 ## Configuration File Format

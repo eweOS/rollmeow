@@ -45,6 +45,10 @@ sync(fetcher, pkg)
 	local postMatch, filter = pkg.postMatch, pkg.filter;
 	local vers = {};
 	for match in allMatches(content, pkg.regex) do
+		if options.showmatch then
+			io.stderr:write(match .. "\n");
+		end
+
 		if postMatch then
 			local ok, ret = pcall(postMatch, match);
 			if not ok then

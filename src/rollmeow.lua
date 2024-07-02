@@ -16,6 +16,7 @@ local rmVersion		= require "version";
 local rmSync		= require "sync";
 local rmCache		= require "cache";
 
+--[[	TODO: move these functions to helpers	]]
 local function
 pwarn(msg)
 	io.stderr:write(msg .. "\n");
@@ -68,12 +69,14 @@ Usage: rollmeow [options] [PKGNAME1] [PKGNAME2] ...
 ]==]);
 end
 
-local options = {
-	sync	= false,
-	diff	= false,
-	json	= false,
-	help	= false,
-	verbose	= false,
+-- global options
+options = {
+	sync		= false,
+	diff		= false,
+	json		= false,
+	help		= false,
+	verbose		= false,
+	showmatch	= false,
 	conf	= os.getenv("HOME") .. "/.config/rollmeow/rollmeow.cfg.lua",
 };
 local i, pkgs = 1, {};
