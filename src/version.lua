@@ -14,12 +14,19 @@ local min = math.min;
 local function
 cmp(v1, v2)
 	for i = 1, min(#v1, #v2) do
-		if v1[i] == v2[i] then
+		local a, b = v1[i], v2[i];
+		local a1, b1 = tonumber(a), tonumber(b);
+
+		if a == b then
 			goto continue;
-		elseif v1[i] > v2[i] then
+		elseif a1 and b1 then
+			return a1 > b1 and 1 or -1;
+		elseif a1 then
 			return 1;
-		elseif v1[i] < v2[i] then
+		elseif b1 then
 			return -1;
+		else
+			return a > b and 1 or -1;
 		end
 ::continue::
 	end
