@@ -185,7 +185,7 @@ doReport(name)
 	end
 
 	local downVer = rmVersion.convert(downStr);
-	if options.diff and rmVersion.cmp(downVer, upVer) then
+	if options.diff and rmVersion.cmp(downVer, upVer) == 0 then
 		return;
 	end
 
