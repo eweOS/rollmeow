@@ -174,12 +174,14 @@ doReport(name)
 
 	local upVer = cache:query(name);
 	if not upVer then
-		perrf("%s: not cached", name);
+		pwarnf("%s: not cached", name);
+		return;
 	end
 
 	local ok, downStr = pcall(conf.evalDownstream, name);
 	if not downStr then
 		pwarnf("%s: failed to eval downstream version: %s", name, downVer);
+		return;
 	end
 
 	local downVer = rmVersion.convert(downStr);
