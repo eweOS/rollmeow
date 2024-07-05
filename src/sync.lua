@@ -46,7 +46,7 @@ sync(fetcher, pkg)
 	local vers = {};
 	for match in allMatches(content, pkg.regex) do
 		if options.showmatch then
-			io.stderr:write(match .. "\n");
+			rmHelper.pwarn(match .. "\n");
 		end
 
 		if postMatch then

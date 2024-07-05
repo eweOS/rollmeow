@@ -6,7 +6,28 @@
 --	Refer to https://os.ewe.moe/ for more information.
 --]]
 
+local io		= require "io";
 local string		= require "string";
+
+local function
+pwarn(msg)
+	io.stderr:write(msg .. "\n");                        end
+
+local function
+perr(msg)
+	pwarn(msg);
+	os.exit(-1);
+end
+
+local function
+perrf(msg, ...)
+	perr(string.format(msg, ...));
+end
+
+local function
+pwarnf(msg, ...)
+	pwarn(string.format(msg, ...));
+end
 
 local function
 validateTable(expect, obj)
@@ -41,6 +62,10 @@ fmtErr(place, err)
 end
 
 return {
+	pwarn		= pwarn,
+	perr		= perr,
+	pwarnf		= pwarnf,
+	perrf		= perrf,
 	validateTable	= validateTable,
 	fmtErr		= fmtErr,
        };

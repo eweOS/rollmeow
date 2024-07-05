@@ -16,27 +16,8 @@ local rmVersion		= require "version";
 local rmSync		= require "sync";
 local rmCache		= require "cache";
 
---[[	TODO: move these functions to helpers	]]
-local function
-pwarn(msg)
-	io.stderr:write(msg .. "\n");
-end
-
-local function
-perr(msg)
-	pwarn(msg);
-	os.exit(-1);
-end
-
-local function
-perrf(msg, ...)
-	perr(string.format(msg, ...));
-end
-
-local function
-pwarnf(msg, ...)
-	pwarn(string.format(msg, ...));
-end
+local pwarn, perr	= rmHelpers.pwarn, rmHelpers.perr;
+local pwarnf, perrf	= rmHelpers.pwarnf, rmHelpers.perrf;
 
 local function
 safeDoFile(path)
@@ -169,6 +150,35 @@ doSync(name)
 end
 
 local function
+jsonVer(ver)
+	local v = "[ " .. ("%q"):format(ver[1]);
+	for i = 2, #ver do
+		v = v .. ", " .. ("%q"):format(ver[i]);
+	end
+
+	return v .. " ]";
+end
+
+local function
+pkgJSON(name, up, down)
+	local upStr, downStr = jsonVer(up), jsonVer(down);
+	return ('{ "name": %q, "upstream": %s, "downstream": %s }'):
+	       format(name, upStr, downStr);
+end
+
+local function
+reportPkg(name, up, down)
+	if options.json then
+		return pkgJSON(name, up, down);
+	else
+		local upStr = rmVersion.verString(up);
+		local downStr = rmVersion.verString(down);
+		return ("%s: upstream %s | downstream %s"):
+		       format(name, upStr, downStr);
+	end
+end
+
+local function
 doReport(name)
 	local pkg = conf.packages[name];
 	if not pkg then
@@ -193,7 +203,7 @@ doReport(name)
 	end
 
 	local upStr = rmVersion.verString(upVer);
-	print(("%s: upstream %s | downstream %s"):format(name, upStr, downStr));
+	return reportPkg(name, upVer, downVer);
 end
 
 
@@ -219,6 +229,20 @@ if options.sync then
 	end
 end
 
+local output = {};
 for _, pkg in ipairs(pkgs) do
-	doReport(pkg);
+	local s = doReport(pkg);
+	if s then
+		if options.json then
+			table.insert(output, s);
+		else
+			print(s);
+		end
+	end
+end
+
+if options.json then
+	print("[");
+	print(table.concat(output, ",\n"));
+	print("]");
 end
