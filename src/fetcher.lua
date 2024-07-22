@@ -12,9 +12,12 @@ local table			= require "table";
 
 local cURL			= require "cURL";
 
+local rmHelpers			= require "helpers"
+
 local yield, easy	= coroutine.yield, cURL.easy;
 local insert, remove	= table.insert, table.remove;
 local concat		= table.concat;
+local verbosef		= rmHelpers.verbosef;
 
 local function
 fetcher(url)
@@ -27,6 +30,7 @@ fetcher(url)
 	end
 end
 
+-- TODO: make it configurable
 local function
 createHandleWithOpt(url)
 	return easy {
@@ -34,6 +38,7 @@ createHandleWithOpt(url)
 			[cURL.OPT_TIMEOUT]		= 10,
 			[cURL.OPT_LOW_SPEED_LIMIT]	= 10,
 			[cURL.OPT_LOW_SPEED_TIME]	= 10,
+			[cURL.OPT_FOLLOWLOCATION]	= true,
 		    };
 end
 
@@ -47,7 +52,7 @@ createConn(f, item)
 	end
 
 	local handle = createHandleWithOpt(url);
-	handle.data = { co = co, buf = {}, retry = 0 };
+	handle.data = { co = co, buf = {}, retry = 0, url = url };
 	return handle;
 end
 
@@ -64,6 +69,7 @@ nextConn(f, list)
 	return nil;
 end
 
+-- TODO: make retry configurable
 local function
 forEach(connections, f, originList)
 	local list = {};
@@ -86,9 +92,19 @@ forEach(connections, f, originList)
 		local newConn = false;
 
 		if type == "error" then
-			p.co(false, tostring(data));
-			newConn = true;
+			if p.retry < 3 then
+				p.retry = p.retry + 1;
+				verbosef("%s: sync failed, retry %d",
+					 p.url, p.retry);
+				handle = createHandleWithOpt(p.url);
+				handle.data = p;
+				multi:add_handle(handle);
+			else
+				p.co(false, tostring(data));
+				newConn = true;
+			end
 		elseif type == "done" then
+			insert(p.buf, data);
 			p.co(true, concat(p.buf));
 			newConn = true;
 		elseif type == "data" then
