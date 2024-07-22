@@ -100,10 +100,10 @@ end
 local conf = safeDoFile(options.conf);
 local confFormat = {
 	evalDownstream	= { type = "function" },
-	fetchUpstream	= { type = "function", optional = true },
 	cachePath	= { type = "string" },
 	packages	= { type = "table" },
 	connections	= { type = "number", optional = true },
+	timeout		= { type = "numner", optional = true },
 };
 local ok, msg = rmHelpers.validateTable(confFormat, conf);
 if not ok then
@@ -133,7 +133,6 @@ for name, pkg in pairs(conf.packages) do
 	end
 end
 
-local fetchUpstream = conf.fetchUpstream;
 local evalDownstrean = conf.evalDownstream;
 
 local function
