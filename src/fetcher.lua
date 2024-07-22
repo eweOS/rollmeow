@@ -28,6 +28,16 @@ fetcher(url)
 end
 
 local function
+createHandleWithOpt(url)
+	return easy {
+			url = url,
+			[cURL.OPT_TIMEOUT]		= 10,
+			[cURL.OPT_LOW_SPEED_LIMIT]	= 10,
+			[cURL.OPT_LOW_SPEED_TIME]	= 10,
+		    };
+end
+
+local function
 createConn(f, item)
 	local co = coroutine.wrap(f);
 	local url = co(fetcher, item);
@@ -36,7 +46,7 @@ createConn(f, item)
 		return nil;
 	end
 
-	local handle = easy{ url = url };
+	local handle = createHandleWithOpt(url);
 	handle.data = { co = co, buf = {}, retry = 0 };
 	return handle;
 end
