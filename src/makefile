@@ -1,7 +1,8 @@
 MERGE		?= lmerge
 LUA		?= lua5.4
 
-SOURCES		:= rollmeow.lua helpers.lua version.lua sync.lua cache.lua
+SOURCES		:= rollmeow.lua helpers.lua version.lua sync.lua cache.lua \
+		   fetcher.lua
 OUTPUT		:= rollmeow
 
 .PHONY: default clean

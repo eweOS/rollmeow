@@ -15,9 +15,11 @@ local rmHelpers		= require "helpers";
 local rmVersion		= require "version";
 local rmSync		= require "sync";
 local rmCache		= require "cache";
+local rmFetcher		= require "fetcher";
 
 local pwarn, perr	= rmHelpers.pwarn, rmHelpers.perr;
 local pwarnf, perrf	= rmHelpers.pwarnf, rmHelpers.perrf;
+local verbose, verbosef	= rmHelpers.verbose, rmHelpers.verbosef;
 
 local function
 safeDoFile(path)
@@ -91,16 +93,26 @@ if options.help then
 	os.exit(0);
 end
 
+if options.verbose then
+	rmHelpers.setVerbose(options.verbose);
+end
+
 local conf = safeDoFile(options.conf);
 local confFormat = {
 	evalDownstream	= { type = "function" },
-	fetchUpstream	= { type = "function" },
+	fetchUpstream	= { type = "function", optional = true },
 	cachePath	= { type = "string" },
 	packages	= { type = "table" },
+	connections	= { type = "number", optional = true },
 };
 local ok, msg = rmHelpers.validateTable(confFormat, conf);
 if not ok then
 	perrf("Invalid configuration: %s", msg);
+end
+
+if conf.fetchUpstream then
+	pwarn "From 0.2.0, rollmeow drops `fetchUpstream` in configuration.";
+	pwarn "Use default concurrent fetcher instead.";
 end
 
 local cache, msg = rmCache.Cache(conf.cachePath);
@@ -125,28 +137,20 @@ local fetchUpstream = conf.fetchUpstream;
 local evalDownstrean = conf.evalDownstream;
 
 local function
-doSync(name)
+doSync(fetcher, name)
 	local pkg = conf.packages[name];
 	if not pkg then
 		perrf("%s: not found", name);
 	end
+	verbosef("syncing %s...", name);
 
-	local ok, ret;
-	for i = 1, 5 do
-		ok, ret = rmSync.sync(fetchUpstream, pkg);
-		if ok then
-			break;
-		end
-		if options.verbose then
-			pwarnf(("%s: failed to sync, retry %d"):format(name, i));
-		end
+	local ok, ret = rmSync.sync(fetcher, pkg);
+	if not ok then
+		pwarnf(("%s: failed to sync"):format(name));
+		return;
 	end
 
-	if ok then
-		cache:update(name, ret);
-	else
-		pwarnf("%s: failed to sync: %s", name, ret);
-	end
+	cache:update(name, ret);
 end
 
 local function
@@ -216,12 +220,7 @@ if #pkgs == 0 then
 end
 
 if options.sync then
-	for _, pkg in ipairs(pkgs) do
-		if options.verbose then
-			pwarnf("syncing %s", pkg);
-		end
-		doSync(pkg);
-	end
+	rmFetcher.forEach(conf.connections or 8, doSync, pkgs);
 
 	local ok, ret = cache:flush();
 	if not ok then

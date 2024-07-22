@@ -61,11 +61,33 @@ fmtErr(place, err)
 	return false, ("error in %s: %s"):format(place, tostring(err));
 end
 
+local isVerbose = false;
+
+local function
+setVerbose(on)
+	isVerbose = on;
+end
+
+local function
+verbose(msg)
+	if isVerbose then
+		pwarnf(msg);
+	end
+end
+
+local function
+verbosef(msg, ...)
+	verbose(string.format(msg, ...));
+end
+
 return {
+	setVerbose	= setVerbose;
 	pwarn		= pwarn,
 	perr		= perr,
 	pwarnf		= pwarnf,
 	perrf		= perrf,
+	verbose		= verbose,
+	verbosef	= verbosef,
 	validateTable	= validateTable,
 	fmtErr		= fmtErr,
        };
