@@ -13,15 +13,11 @@ evalDownstream(pkg)
 	return ver;
 end
 
-local function
-fetchUpstream(url)
-	return io.popen("curl -s " .. url):read("a");
-end
-
 return
 {
 	evalDownstream	= evalDownstream,
 	fetchUpstream	= fetchUpstream,
 	cachePath	= "rollmeow.cache.lua",
 	packages	= pkgs,
+	connections	= 4,
 };

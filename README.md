@@ -2,6 +2,26 @@
 
 An update checker.
 
+## Installation
+
+### Dependency
+
+- `lua5.4`
+- `lua-curl`
+
+To build a script bundle, [lmerge](https://github.com/ziyao233/lmerge) is
+also needed.
+
+### Build Script Bundle
+
+```
+	$ cd src
+	$ make			# creates rollmeow
+	$ chmod +x rollmeow
+```
+
+The bundled script `rollmeow` could be run directly.
+
 ## Usage
 
 ```
@@ -28,11 +48,13 @@ should return a table with fields listed below:
 	function string fetchUpstream(string url)
 	string cachePath
 	table packages
+	number connections
 }
 ```
 
 - `evalDownstream`: Returns downstream version string of package `pkgname`
-- `fetchUpstream`: Returns content of `url` as a string
+- `fetchUpstream`: (deprecated) Returns content of `url` as a string
+- `connections`: Maximum number of concurrent fetch connections.
 - `cachePath`: A path to store upstream version caches.
 - `packages`: see next section
 
