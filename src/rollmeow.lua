@@ -146,6 +146,7 @@ doSync(fetcher, name)
 	local ok, ret = rmSync.sync(fetcher, pkg);
 	if not ok then
 		pwarnf(("%s: failed to sync"):format(name));
+		cache:delete(name);
 		return;
 	end
 
@@ -163,22 +164,30 @@ jsonVer(ver)
 end
 
 local function
-pkgJSON(name, up, down)
+pkgJSON(status, name, up, down)
+	local statusStr = status == 0 and "ok" or "outofdate";
 	local upStr, downStr = jsonVer(up), jsonVer(down);
-	return ('{ "name": %q, "upstream": %s, "downstream": %s }'):
-	       format(name, upStr, downStr);
+	return
+	  ('{ "name": %q, "status": %q, "upstream": %s, "downstream": %s }'):
+	       format(name, statusStr, upStr, downStr);
 end
 
 local function
-reportPkg(name, up, down)
+reportPkg(status, name, up, down)
 	if options.json then
-		return pkgJSON(name, up, down);
+		return pkgJSON(status, name, up, down);
 	else
 		local upStr = rmVersion.verString(up);
 		local downStr = rmVersion.verString(down);
 		return ("%s: upstream %s | downstream %s"):
 		       format(name, upStr, downStr);
 	end
+end
+
+local function
+jsonFailed(name, reason)
+	return ('{ "name": %q, "status": "failed", "reason": %q }'):
+	       format(name, reason);
 end
 
 local function
@@ -190,23 +199,32 @@ doReport(name)
 
 	local upVer = cache:query(name);
 	if not upVer then
-		pwarnf("%s: not cached", name);
-		return;
+		if not options.json then
+			pwarnf("%s: not cached", name);
+			return;
+		else
+			return jsonFailed(name, "not cached");
+		end
 	end
 
 	local ok, downStr = pcall(conf.evalDownstream, name);
 	if not downStr then
-		pwarnf("%s: failed to eval downstream version: %s", name, downVer);
-		return;
+		if not options.json then
+			pwarnf("%s: failed to eval downstream version: %s",
+			       name, downVer);
+			return;
+		else
+			return jsonFailed(name, "failed to eval downstream");
+		end
 	end
 
 	local downVer = rmVersion.convert(downStr);
-	if options.diff and rmVersion.cmp(downVer, upVer) == 0 then
+	local status = rmVersion.cmp(downVer, upVer);
+	if options.diff and status == 0 then
 		return;
 	end
 
-	local upStr = rmVersion.verString(upVer);
-	return reportPkg(name, upVer, downVer);
+	return reportPkg(status, name, upVer, downVer);
 end
 
 

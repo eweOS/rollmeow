@@ -32,7 +32,7 @@ cacheMeta.__index = cacheMeta;
 
 local function
 Cache(path)
-	local cache = { path = path, news = {} };
+	local cache = { path = path, news = {}, deleted = {} };
 	local cacheFile, msg = io.open(path, "r");
 
 	if cacheFile then
@@ -79,6 +79,10 @@ cacheMeta.flush = function(cache)
 		cacheF:write(("v[%q]={%s}\n"):format(pkg, serializeVer(ver)));
 	end
 
+	for pkg, _ in pairs(cache.deleted) do
+		cacheF:write(("v[%q]=nil\n"):format(pkg));
+	end
+
 	cacheF:close();
 	return true;
 end
@@ -92,7 +96,15 @@ cacheMeta.update = function(cache, pkgname, ver)
 	cache.news[pkgname] = ver;
 end
 
+cacheMeta.delete = function(cache, pkgname)
+	cache.deleted[pkgname] = true;
+end
+
 cacheMeta.query = function(cache, pkgname)
+	if cache.deleted[pkgname] then
+		return nil;
+	end
+
 	local ver = cache.news[pkgname];
 	if ver then
 		return ver;
