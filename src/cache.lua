@@ -12,7 +12,7 @@ local string		= require "string";
 local rmHelpers		= require "helpers";
 local rmVersion		= require "version";
 
-local fmtErr = rmHelpers.fmtErr;
+local fmtErr, pwarnf = rmHelpers.fmtErr, rmHelpers.pwarnf;
 
 local function
 recreateCache(path)
@@ -34,6 +34,7 @@ local function
 Cache(path)
 	local cache = { path = path, news = {}, deleted = {} };
 	local cacheFile, msg = io.open(path, "r");
+	local recreate = true;
 
 	if cacheFile then
 		local rawCache = cacheFile:read("a") .. "return v";
@@ -47,9 +48,17 @@ Cache(path)
 			return fmtErr("loading cache", msg);
 		end
 
-		-- TODO: validate cache
+		if not ret or type(ret) ~= "table" then
+			pwarnf("Invalid cache file, recreating...");
+			goto recreate;
+		end
+
 		cache.vers = ret;
-	else
+		recreate = false;
+	end
+
+::recreate::
+	if recreate then
 		local ok, msg = recreateCache(path);
 		if not ok then
 			return false, msg;
