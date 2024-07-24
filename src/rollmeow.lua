@@ -145,7 +145,8 @@ doSync(fetcher, name)
 
 	local ok, ret = rmSync.sync(fetcher, pkg);
 	if not ok then
-		pwarnf(("%s: failed to sync"):format(name));
+		pwarnf("%s: failed to sync: %s",
+		       name, ret or "no information");
 		cache:delete(name);
 		return;
 	end
