@@ -94,7 +94,7 @@ forEach(connections, f, originList)
 		if type == "error" then
 			if p.retry < 3 then
 				p.retry = p.retry + 1;
-				verbosef("%s: sync failed, retry %d",
+				verbosef("%s: fetch failed, retry %d",
 					 p.url, p.retry);
 				handle = createHandleWithOpt(p.url);
 				handle.data = p;
