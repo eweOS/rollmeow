@@ -60,6 +60,7 @@ options = {
 	help		= false,
 	verbose		= false,
 	showmatch	= false,
+	info		= false,
 	conf	= os.getenv("HOME") .. "/.config/rollmeow/rollmeow.cfg.lua",
 };
 local i, pkgs = 1, {};
@@ -228,6 +229,40 @@ doReport(name)
 	return reportPkg(status, name, upVer, downVer);
 end
 
+local function
+alignedFormat(n, k, v)
+	return ("%s:%s%s"):format(k, (' '):rep(n - #k - 1), v);
+end
+
+local function
+pkginfo(name)
+	local pkg = conf.packages[name];
+	if not pkg then
+		perrf("%s: not found", name);
+	end
+
+	local pkgAttrs = { "url", "regex" };
+	print(("name:\t\t%s"):format(name));
+	for _, attr in ipairs(pkgAttrs) do
+		print(alignedFormat(16, attr, pkg[attr]));
+	end
+end
+
+if options.info then
+	if #pkgs == 0 then
+		perrf("option --info must come with package names");
+	end
+
+	for i, pkg in ipairs(pkgs) do
+		if i ~= 1 then
+			io.stdout:write('\n');
+		end
+
+		pkginfo(pkg);
+	end
+
+	os.exit(0);
+end
 
 --[[	enumerate all packages	]]
 if #pkgs == 0 then
