@@ -1,0 +1,7 @@
+---
+v0.2.1
+
+- Fix crash when an invalid cache is provided
+- Print precise reason on sync failure instead of simply "failed to sync"
+- Print precise reason of fetching failure
+- Package information now could be shown with `--info` option
