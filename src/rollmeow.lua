@@ -173,7 +173,7 @@ local function
 pkgJSON(status, name, up, down, note)
 	local statusStr = status == 0 and "ok" or "outofdate";
 	local downStr = jsonVer(down);
-	local upStr = up == "MANUAL" or up and jsonVer(up);
+	local upStr = up == "MANUAL" and ("%q"):format(up) or jsonVer(up);
 	local noteStr = note ~= nil and (', "note": %q '):format(note) or "";
 	return
 	  ('{ "name": %q, "status": %q, "upstream": %s, "downstream": %s %s}'):

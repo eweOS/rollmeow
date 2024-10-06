@@ -1,4 +1,9 @@
 ---
+v0.2.3
+
+- Fix JSON output of manually-checked packages
+
+---
 v0.2.2
 
 - Support marking manual checked packages
