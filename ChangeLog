@@ -1,4 +1,9 @@
 ---
+v0.2.2
+
+- Support marking manual checked packages
+
+---
 v0.2.1
 
 - Fix crash when an invalid cache is provided

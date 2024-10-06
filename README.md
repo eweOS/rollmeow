@@ -36,6 +36,8 @@ For options,
 - `--json`: JSON format output
 - `--info`: show information about a package
 - `--showmatch`: show regex matches, useful for debugging
+- `--manual`: show manually checked packages, which are omitted in
+  output for compatibility.
 - `--verbose`: be verbose
 
 ## Configuration File Format
@@ -72,7 +74,9 @@ should return a table with fields listed below:
 
 - `url`: URL to fetch
 - `regex`: A Lua regex, will be used to match version strings
-  `-` modifier is not available and is recognized as a normal character
+  `-` modifier is not available and is recognized as a normal character.
+  A package omitting `regex` property will be recognized as required
+  manually checking.
 - `postMatch`: A hook to process matched results.
 - `filter`: Called with each matched version, should return false if
   this version should be ignored. `verArray` is the version string splited

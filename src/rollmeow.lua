@@ -61,6 +61,7 @@ options = {
 	verbose		= false,
 	showmatch	= false,
 	info		= false,
+	manual		= false,
 	conf	= os.getenv("HOME") .. "/.config/rollmeow/rollmeow.cfg.lua",
 };
 local i, pkgs = 1, {};
@@ -123,7 +124,7 @@ end
 
 local pkgFormat = {
 	url		= { type = "string" },
-	regex		= { type = "string" },
+	regex		= { type = "string", optional = true },
 	postMatch	= { type = "function", optional = true },
 	filter		= { type = "function", optional = true },
 };
@@ -141,6 +142,9 @@ doSync(fetcher, name)
 	local pkg = conf.packages[name];
 	if not pkg then
 		perrf("%s: not found", name);
+	elseif not pkg.regex then
+		verbosef("skip %s, please check manually", name);
+		return;
 	end
 	verbosef("syncing %s...", name);
 
@@ -168,7 +172,8 @@ end
 local function
 pkgJSON(status, name, up, down)
 	local statusStr = status == 0 and "ok" or "outofdate";
-	local upStr, downStr = jsonVer(up), jsonVer(down);
+	local downStr = jsonVer(down);
+	local upStr = up == "MANUAL" or up and jsonVer(up);
 	return
 	  ('{ "name": %q, "status": %q, "upstream": %s, "downstream": %s }'):
 	       format(name, statusStr, upStr, downStr);
@@ -179,7 +184,7 @@ reportPkg(status, name, up, down)
 	if options.json then
 		return pkgJSON(status, name, up, down);
 	else
-		local upStr = rmVersion.verString(up);
+		local upStr = up == "MANUAL" and up or rmVersion.verString(up);
 		local downStr = rmVersion.verString(down);
 		return ("%s: upstream %s | downstream %s"):
 		       format(name, upStr, downStr);
@@ -199,14 +204,8 @@ doReport(name)
 		perrf("%s: not found", name);
 	end
 
-	local upVer = cache:query(name);
-	if not upVer then
-		if not options.json then
-			pwarnf("%s: not cached", name);
-			return;
-		else
-			return jsonFailed(name, "not cached");
-		end
+	if not pkg.regex and not options.manual then
+		return;
 	end
 
 	local ok, downStr = pcall(conf.evalDownstream, name);
@@ -221,9 +220,23 @@ doReport(name)
 	end
 
 	local downVer = rmVersion.convert(downStr);
-	local status = rmVersion.cmp(downVer, upVer);
-	if options.diff and status == 0 then
-		return;
+
+	local upVer, status = "MANUAL", 1;
+	if pkg.regex then
+		upVer = cache:query(name);
+		if not upVer then
+			if not options.json then
+				pwarnf("%s: not cached", name);
+				return;
+			else
+				return jsonFailed(name, "not cached");
+			end
+		end
+
+		status = rmVersion.cmp(downVer, upVer);
+		if options.diff and status == 0 then
+			return;
+		end
 	end
 
 	return reportPkg(status, name, upVer, downVer);
@@ -244,7 +257,9 @@ pkginfo(name)
 	local pkgAttrs = { "url", "regex" };
 	print(("name:\t\t%s"):format(name));
 	for _, attr in ipairs(pkgAttrs) do
-		print(alignedFormat(16, attr, pkg[attr]));
+		if pkg[attr] then
+			print(alignedFormat(16, attr, pkg[attr]));
+		end
 	end
 end
 
