@@ -86,4 +86,4 @@ should return a table with fields listed below:
   adds special marks on packages with available notes. Could be listed with
   `--info`.
 
-`url` and `regex` are required for all packages.
+`url` is required for all packages.
