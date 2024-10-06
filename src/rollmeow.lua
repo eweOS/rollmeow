@@ -170,24 +170,26 @@ jsonVer(ver)
 end
 
 local function
-pkgJSON(status, name, up, down)
+pkgJSON(status, name, up, down, note)
 	local statusStr = status == 0 and "ok" or "outofdate";
 	local downStr = jsonVer(down);
 	local upStr = up == "MANUAL" or up and jsonVer(up);
+	local noteStr = note ~= nil and (', "note": %q '):format(note) or "";
 	return
-	  ('{ "name": %q, "status": %q, "upstream": %s, "downstream": %s }'):
-	       format(name, statusStr, upStr, downStr);
+	  ('{ "name": %q, "status": %q, "upstream": %s, "downstream": %s %s}'):
+	       format(name, statusStr, upStr, downStr, noteStr);
 end
 
 local function
-reportPkg(status, name, up, down)
+reportPkg(status, name, up, down, note)
 	if options.json then
-		return pkgJSON(status, name, up, down);
+		return pkgJSON(status, name, up, down, note);
 	else
 		local upStr = up == "MANUAL" and up or rmVersion.verString(up);
 		local downStr = rmVersion.verString(down);
-		return ("%s: upstream %s | downstream %s"):
-		       format(name, upStr, downStr);
+		return ("%s%s: upstream %s | downstream %s"):
+		       format(name, note ~= nil and "[!]" or "",
+		              upStr, downStr);
 	end
 end
 
@@ -239,7 +241,7 @@ doReport(name)
 		end
 	end
 
-	return reportPkg(status, name, upVer, downVer);
+	return reportPkg(status, name, upVer, downVer, pkg.note);
 end
 
 local function
@@ -254,7 +256,7 @@ pkginfo(name)
 		perrf("%s: not found", name);
 	end
 
-	local pkgAttrs = { "url", "regex" };
+	local pkgAttrs = { "url", "regex", "note" };
 	print(("name:\t\t%s"):format(name));
 	for _, attr in ipairs(pkgAttrs) do
 		if pkg[attr] then

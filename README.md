@@ -69,6 +69,7 @@ should return a table with fields listed below:
 	regex:		string
 	postMatch:	string function(string match)
 	filter:		boolean function([string] verArray)
+	note:		string
 }
 ```
 
@@ -81,5 +82,8 @@ should return a table with fields listed below:
 - `filter`: Called with each matched version, should return false if
   this version should be ignored. `verArray` is the version string splited
   by dot (`.`)
+- `note`: An optional note to the package. Not used internally, but rollmeow
+  adds special marks on packages with available notes. Could be listed with
+  `--info`.
 
 `url` and `regex` are required for all packages.

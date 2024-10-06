@@ -2,6 +2,7 @@
 v0.2.2
 
 - Support marking manual checked packages
+- New "note" property in package description
 
 ---
 v0.2.1
