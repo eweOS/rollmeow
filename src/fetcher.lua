@@ -69,6 +69,22 @@ nextConn(f, list)
 	return nil;
 end
 
+-- XXX: multi:iperform() doesn't provide a valid iterator in case that no easy
+-- handle has been added to the multi instance, thus a for-loop may fail with
+-- "attempt to call a nil value". I consider it's a mistake of API design.
+-- We provide a wrapper to handle the edge case.
+local function
+wrapIperform(multi)
+	local res = { multi:iperform() };
+
+	if res[1] then
+		return table.unpack(res);
+	else
+		-- End the loop at the first iteration.
+		return function(x) return nil; end;
+	end
+end
+
 -- TODO: make retry configurable
 local function
 forEach(connections, f, originList)
@@ -87,7 +103,7 @@ forEach(connections, f, originList)
 		multi:add_handle(handle);
 	end
 
-	for data, type, handle in multi:iperform() do
+	for data, type, handle in wrapIperform(multi) do
 		local p = handle.data;
 		local newConn = false;
 
