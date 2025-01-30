@@ -25,7 +25,7 @@ local function
 safeDoFile(path)
 	local f, msg = io.open(path, "r");
 	if not f then
-		perrf("Cannot load configuration:\n %s", msg);
+		perrf("Cannot load configuration %s:\n%s", path, msg);
 	end
 
 	local env = {};
@@ -33,12 +33,12 @@ safeDoFile(path)
 	local fcfg, msg = load(f:read("a"), path, "t",
 			       setmetatable(env, { __index = _G }));
 	if not fcfg then
-		perrf("Cannot parse configuration:\n%s", msg);
+		perrf("Cannot parse configuration %s:\n%s", path, msg);
 	end
 
 	local ok, ret = pcall(fcfg);
 	if not ok then
-		perrf("Cannot eval configuration:\n%s", ret);
+		perrf("Cannot eval configuration %s:\n%s", path, ret);
 	end
 
 	return ret;
