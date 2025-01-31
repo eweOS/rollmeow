@@ -63,27 +63,40 @@ should return a table with fields listed below:
 
 ## Package Format
 
+There're currently three types of packages and rollmeow fetches their versions
+differently,
+
+- Regex-matching packages. This is the main type and these packages come with
+  both `url` and `regex` property. rollmeow fetches the URL and synchronize
+  version information based on the provided regex.
+- Batched packages. These packages come with `follow` property. rollmeow uses
+  version information of the package specified by `follow` property for them.
+  This type is useful to track subpackages and grouped packages (for example,
+  KDE).
+- Manully-checked packages. These packages act as placeholders and provide
+  `url` property only. rollmeow doesn't synchronize or store version
+  information for them.
+
 ```
 {
-	url:		string
-	regex:		string
-	postMatch:	string function(string match)
-	filter:		boolean function([string] verArray)
-	note:		string
+		url:		string
+[OPTIONAL]	regex:		string
+[OPTIONAL]	postMatch:	string function(string match)
+[OPTIONAL]	filter:		boolean function([string] verArray)
+[OPTIONAL]	note:		string
+[OPTIONAL]	follow:		string
 }
 ```
 
 - `url`: URL to fetch
-- `regex`: A Lua regex, will be used to match version strings
-  `-` modifier is not available and is recognized as a normal character.
-  A package omitting `regex` property will be recognized as required
-  manually checking.
-- `postMatch`: A hook to process matched results.
+- `regex`: A Lua regex for matching version strings. `-` modifier is not
+  available and is recognized as a normal character. A package omitting both
+  `regex` and `follow` property will be recognized as manually-checked one.
+- `postMatch`: A hook to process matched results. Has no effect on 
 - `filter`: Called with each matched version, should return false if
   this version should be ignored. `verArray` is the version string splited
   by dot (`.`)
 - `note`: An optional note to the package. Not used internally, but rollmeow
   adds special marks on packages with available notes. Could be listed with
   `--info`.
-
-`url` is required for all packages.
+- `follow`: Specify another package whose version synchronized with this one..

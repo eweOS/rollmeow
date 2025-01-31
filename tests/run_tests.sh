@@ -36,7 +36,7 @@ verify() {
 
 runcase() {
 	local tcase="$1"
-	local cmd="$ROLLMEOW --conf $tcase.lua"
+	local cmd="$ROLLMEOW --sync --conf $tcase.lua"
 
 	if [ -f "$tcase.sh" ]; then
 		cmd="sh $tcase.sh"
@@ -53,7 +53,11 @@ runcase() {
 	rm -rf "$dir" /tmp/rollmeow-test.cache.lua
 }
 
-testcases=(sync-manual-checked-package)
+testcases=(
+	invalid-followed-package
+	uncached-followed-package
+	# Regression tests
+	sync-manual-checked-package)
 
 export ROLLMEOW="$(dirname "$0")/../src/rollmeow"
 

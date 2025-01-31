@@ -133,6 +133,15 @@ for name, pkg in pairs(conf.packages) do
 	if not ok then
 		perrf("Invalid package %s: %s", name, msg);
 	end
+
+	-- Validate the followed package exists
+	local follow = pkg.follow;
+	if follow then
+		if not conf.packages[follow] then
+			perrf("Invalid package %s: followed package %s " ..
+			      "doesn't exist", name, follow);
+		end
+	end
 end
 
 local evalDownstrean = conf.evalDownstream;
@@ -142,8 +151,9 @@ doSync(fetcher, name)
 	local pkg = conf.packages[name];
 	if not pkg then
 		perrf("%s: not found", name);
+	elseif pkg.follow then
+		return;
 	elseif not pkg.regex then
-		verbosef("skip %s, please check manually", name);
 		return;
 	end
 	verbosef("syncing %s...", name);
@@ -206,7 +216,7 @@ doReport(name)
 		perrf("%s: not found", name);
 	end
 
-	if not pkg.regex and not options.manual then
+	if (not pkg.regex and not pkg.follow) and not options.manual then
 		return;
 	end
 
@@ -224,7 +234,7 @@ doReport(name)
 	local downVer = rmVersion.convert(downStr);
 
 	local upVer, status = "MANUAL", 1;
-	if pkg.regex then
+	if pkg.regex or pkg.follow then
 		upVer = cache:query(name);
 		if not upVer then
 			if not options.json then
@@ -256,7 +266,7 @@ pkginfo(name)
 		perrf("%s: not found", name);
 	end
 
-	local pkgAttrs = { "url", "regex", "note" };
+	local pkgAttrs = { "url", "regex", "note", "follow" };
 	print(("name:\t\t%s"):format(name));
 	for _, attr in ipairs(pkgAttrs) do
 		if pkg[attr] then
@@ -291,6 +301,24 @@ end
 
 if options.sync then
 	rmFetcher.forEach(conf.connections or 8, doSync, pkgs);
+
+	for _, name in ipairs(pkgs) do
+		local follow = conf.packages[name].follow;
+
+		if not follow then
+			goto continue;
+		end
+
+		local ver = cache:query(follow);
+		if not ver then
+			pwarnf("%s: failed to sync: package %s isn't cached",
+			       name, follow);
+			goto continue;
+		end
+
+		cache:update(name, ver);
+::continue::
+	end
 
 	local ok, ret = cache:flush();
 	if not ok then
