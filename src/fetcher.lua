@@ -30,6 +30,9 @@ fetcher(url)
 	end
 end
 
+local useragent = ("curl/%s (Rollmeow)"):
+		  format(cURL.version_info("version"));
+
 -- TODO: make it configurable
 local function
 createHandleWithOpt(url)
@@ -39,6 +42,7 @@ createHandleWithOpt(url)
 			[cURL.OPT_LOW_SPEED_LIMIT]	= 10,
 			[cURL.OPT_LOW_SPEED_TIME]	= 10,
 			[cURL.OPT_FOLLOWLOCATION]	= true,
+			[cURL.OPT_USERAGENT]		= useragent,
 		    };
 end
 
