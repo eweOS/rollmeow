@@ -35,6 +35,7 @@ For options,
 - `--diff`: only print outdated packages
 - `--json`: JSON format output
 - `--info`: show information about a package
+- `--showfetched`: show fetched content of the URL, useful for debugging
 - `--showmatch`: show regex matches, useful for debugging
 - `--manual`: show manually checked packages, which are omitted in
   output for compatibility.

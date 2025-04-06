@@ -42,6 +42,10 @@ sync(fetcher, pkg)
 		return fmtErr("fetch function", content);
 	end
 
+	if options.showfetched then
+		rmHelper.pwarn(content .. '\n');
+	end
+
 	local postMatch, filter = pkg.postMatch, pkg.filter;
 	local vers = {};
 	for match in allMatches(content, pkg.regex) do

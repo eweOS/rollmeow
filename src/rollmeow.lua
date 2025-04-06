@@ -3,7 +3,7 @@
 --[[
 --	rollmeow
 --	SPDX-License-Identifier: MPL-2.0
---	Copyright (c) 2024 eweOS developers. All rights reserved.
+--	Copyright (c) 2024-2025 eweOS developers. All rights reserved.
 --	Refer to https://os.ewe.moe/ for more information
 --]]
 
@@ -59,6 +59,7 @@ options = {
 	json		= false,
 	help		= false,
 	verbose		= false,
+	showfetched	= false,
 	showmatch	= false,
 	info		= false,
 	manual		= false,
