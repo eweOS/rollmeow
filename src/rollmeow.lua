@@ -16,6 +16,7 @@ local rmVersion		= require "version";
 local rmSync		= require "sync";
 local rmCache		= require "cache";
 local rmFetcher		= require "fetcher";
+local rmPackage		= require "rmpackage";
 
 local pwarn, perr	= rmHelpers.pwarn, rmHelpers.perr;
 local pwarnf, perrf	= rmHelpers.pwarnf, rmHelpers.perrf;
@@ -123,23 +124,8 @@ if not cache then
 	perr(msg);
 end
 
-local function
-pkgType(pkg)
-	local url, regex, follow = pkg.url, pkg.regex, pkg.follow;
-
-	if url and regex and not follow then
-		return "regex-match";
-	elseif not regex and follow then
-		return "batched";
-	elseif url and not regex and not follow then
-		return "manual";
-	end
-
-	return nil;
-end
-
 for name, pkg in pairs(conf.packages) do
-	local t = pkgType(pkg);
+	local t = rmPackage.type(pkg);
 	if not t then
 		perrf("Invalid type for package %s", name);
 	end
@@ -163,7 +149,7 @@ doSync(fetcher, name)
 		perrf("%s: not found", name);
 	end
 
-	local t = pkgType(pkg);
+	local t = rmPackage.type(pkg);
 	if t ~= "regex-match" then
 		return;
 	end
@@ -228,7 +214,7 @@ doReport(name)
 		perrf("%s: not found", name);
 	end
 
-	local t = pkgType(pkg);
+	local t = rmPackage.type(pkg);
 
 	if t == "manual" and not options.manual then
 		return;
@@ -268,38 +254,22 @@ doReport(name)
 	return reportPkg(status, name, upVer, downVer, pkg.note);
 end
 
-local function
-alignedFormat(n, k, v)
-	return ("%s:%s%s"):format(k, (' '):rep(n - #k - 1), v);
-end
-
-local function
-pkginfo(name)
-	local pkg = conf.packages[name];
-	if not pkg then
-		perrf("%s: not found", name);
-	end
-
-	local pkgAttrs = { "url", "regex", "note", "follow" };
-	print(("name:\t\t%s"):format(name));
-	for _, attr in ipairs(pkgAttrs) do
-		if pkg[attr] then
-			print(alignedFormat(16, attr, pkg[attr]));
-		end
-	end
-end
-
 if options.info then
 	if #pkgs == 0 then
 		perrf("option --info must come with package names");
 	end
 
-	for i, pkg in ipairs(pkgs) do
+	for i, pkgname in ipairs(pkgs) do
 		if i ~= 1 then
 			io.stdout:write('\n');
 		end
 
-		pkginfo(pkg);
+		local pkg = conf.packages[pkgname];
+		if not pkg then
+			perrf("%s: not found", name);
+		end
+
+		io.stdout:write(rmPackage.prettyPrint(pkgname, pkg));
 	end
 
 	os.exit(0);
