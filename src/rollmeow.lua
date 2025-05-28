@@ -161,11 +161,13 @@ doSync(fetcher, name)
 	local pkg = conf.packages[name];
 	if not pkg then
 		perrf("%s: not found", name);
-	elseif pkg.follow then
-		return;
-	elseif not pkg.regex then
+	end
+
+	local t = pkgType(pkg);
+	if t ~= "regex-match" then
 		return;
 	end
+
 	verbosef("syncing %s...", name);
 
 	local ok, ret = rmSync.sync(fetcher, pkg);
@@ -226,7 +228,9 @@ doReport(name)
 		perrf("%s: not found", name);
 	end
 
-	if (not pkg.regex and not pkg.follow) and not options.manual then
+	local t = pkgType(pkg);
+
+	if t == "manual" and not options.manual then
 		return;
 	end
 
@@ -244,7 +248,7 @@ doReport(name)
 	local downVer = rmVersion.convert(downStr);
 
 	local upVer, status = "MANUAL", 1;
-	if pkg.regex or pkg.follow then
+	if t ~= "manual" then
 		upVer = cache:query(name);
 		if not upVer then
 			if not options.json then
