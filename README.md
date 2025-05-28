@@ -62,32 +62,26 @@ should return a table with fields listed below:
 - `cachePath`: A path to store upstream version caches.
 - `packages`: see next section
 
-## Package Format
+## Package Description
 
 There're currently three types of packages and rollmeow fetches their versions
 differently,
 
-- Regex-matching packages. This is the main type and these packages come with
-  both `url` and `regex` property. rollmeow fetches the URL and synchronize
-  version information based on the provided regex.
-- Batched packages. These packages come with `follow` property. rollmeow uses
-  version information of the package specified by `follow` property for them.
-  This type is useful to track subpackages and grouped packages (for example,
-  KDE).
-- Manully-checked packages. These packages act as placeholders and provide
-  `url` property only. rollmeow doesn't synchronize or store version
-  information for them.
+### Regex-matching packages
 
 ```
 {
 		url:		string
-[OPTIONAL]	regex:		string
+		regex:		string
 [OPTIONAL]	postMatch:	string function(string match)
 [OPTIONAL]	filter:		boolean function([string] verArray)
 [OPTIONAL]	note:		string
-[OPTIONAL]	follow:		string
 }
 ```
+
+This is the main type and these packages come with both `url` and `regex`
+property. rollmeow fetches the URL and synchronize version information based
+on the provided regex.
 
 - `url`: URL to fetch
 - `regex`: A Lua regex for matching version strings. `-` modifier is not
@@ -100,4 +94,31 @@ differently,
 - `note`: An optional note to the package. Not used internally, but rollmeow
   adds special marks on packages with available notes. Could be listed with
   `--info`.
+
+### Batched packages
+
+```
+{
+		follow:		string
+[OPTIONAL]	url:		string
+[OPTIONAL]	note:		string
+}
+```
+
+These packages come with `follow` property. rollmeow uses version information
+of the package specified by `follow` property for them. This type is useful to
+track subpackages and grouped packages (for example, KDE).
+
 - `follow`: Specify another package whose version synchronized with this one..
+
+### Manully-checked packages
+
+```
+{
+		url:		string
+[OPTIONAL]	note:		string
+}
+```
+
+These packages act as placeholders. rollmeow doesn't synchronize or store
+version information for them.

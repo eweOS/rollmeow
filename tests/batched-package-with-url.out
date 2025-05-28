@@ -1,0 +1,2 @@
+batched-package-with-url: upstream 1.2.3 | downstream 11.45.14
+example: upstream 1.2.3 | downstream 11.45.14

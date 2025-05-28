@@ -56,6 +56,8 @@ runcase() {
 testcases=(
 	invalid-followed-package
 	uncached-followed-package
+	invalid-package-type-follow-and-regex
+	batched-package-with-url
 	# Regression tests
 	sync-manual-checked-package)
 

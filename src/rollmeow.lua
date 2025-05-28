@@ -123,16 +123,25 @@ if not cache then
 	perr(msg);
 end
 
-local pkgFormat = {
-	url		= { type = "string" },
-	regex		= { type = "string", optional = true },
-	postMatch	= { type = "function", optional = true },
-	filter		= { type = "function", optional = true },
-};
+local function
+pkgType(pkg)
+	local url, regex, follow = pkg.url, pkg.regex, pkg.follow;
+
+	if url and regex and not follow then
+		return "regex-match";
+	elseif not regex and follow then
+		return "batched";
+	elseif url and not regex and not follow then
+		return "manual";
+	end
+
+	return nil;
+end
+
 for name, pkg in pairs(conf.packages) do
-	local ok, msg = rmHelpers.validateTable(pkgFormat, pkg);
-	if not ok then
-		perrf("Invalid package %s: %s", name, msg);
+	local t = pkgType(pkg);
+	if not t then
+		perrf("Invalid type for package %s", name);
 	end
 
 	-- Validate the followed package exists
