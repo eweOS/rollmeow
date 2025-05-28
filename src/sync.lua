@@ -10,6 +10,7 @@ local string		= require "string";
 local table		= require "table";
 local rmVersion		= require "version";
 local rmHelper		= require "helpers";
+local rmPackage		= require "rmpackage";
 
 local gmatch, gsub	= string.gmatch, string.gsub;
 local insert		= table.insert;
@@ -35,13 +36,15 @@ parseByRegexMatch(content, pkg)
 	return matches;
 end
 
+local parserLUTByType <const> = {
+	["regex-match"]		= parseByRegexMatch,
+};
+
 local function
 getParser(pkg)
-	if pkg.url and pkg.regex then
-		return parseByRegexMatch;
-	end
+	local t = rmPackage.type(pkg);
 
-	return nil;
+	return t and parserLUTByType[t];
 end
 
 local vCmp = rmVersion.cmp;
