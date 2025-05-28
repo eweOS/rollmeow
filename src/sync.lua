@@ -20,6 +20,30 @@ allMatches(s, pattern)
 	return gmatch(s, pattern1);
 end
 
+local function
+parseByRegexMatch(content, pkg)
+	local matches = {};
+
+	if options.showfetched then
+		rmHelper.pwarn(content .. '\n');
+	end
+
+	for match in allMatches(content, pkg.regex) do
+		table.insert(matches, match);
+	end
+
+	return matches;
+end
+
+local function
+getParser(pkg)
+	if pkg.url and pkg.regex then
+		return parseByRegexMatch;
+	end
+
+	return nil;
+end
+
 local vCmp = rmVersion.cmp;
 local function
 latestVersion(vers)
@@ -42,13 +66,14 @@ sync(fetcher, pkg)
 		return fmtErr("fetch function", content);
 	end
 
-	if options.showfetched then
-		rmHelper.pwarn(content .. '\n');
+	local parser = getParser(pkg);
+	if not parser then
+		return fmtErr("package description", "invalid package type");
 	end
 
 	local postMatch, filter = pkg.postMatch, pkg.filter;
 	local vers = {};
-	for match in allMatches(content, pkg.regex) do
+	for _, match in ipairs(parser(content, pkg)) do
 		if options.showmatch then
 			rmHelper.pwarn(match .. "\n");
 		end
