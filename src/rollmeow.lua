@@ -300,9 +300,8 @@ if #pkgs == 0 then
 	table.sort(pkgs);
 end
 
-if options.sync then
-	rmFetcher.forEach(conf.connections or 8, doSync, pkgs);
-
+local function
+syncBatchedPkgs(pkgs)
 	for _, name in ipairs(pkgs) do
 		local follow = conf.packages[name].follow;
 
@@ -320,6 +319,12 @@ if options.sync then
 		cache:update(name, ver);
 ::continue::
 	end
+end
+
+if options.sync then
+	rmFetcher.forEach(conf.connections or 8, doSync, pkgs);
+
+	syncBatchedPkgs(pkgs);
 
 	local ok, ret = cache:flush();
 	if not ok then
