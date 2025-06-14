@@ -66,10 +66,12 @@ testcases=(
 	# Regression tests
 	sync-manual-checked-package
 	# unit tests
-	unit-version-cmp)
+	unit-version-cmp
+	unit-pktline)
 
 export ROLLMEOW="$(dirname "$0")/../src/rollmeow"
 export SRCDIR="$(dirname "$0")"/../src/
+export TESTDIR="$(dirname "$0")"
 
 for c in "${testcases[@]}"; do
 	printf "Running $c... "
