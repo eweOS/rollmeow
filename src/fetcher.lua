@@ -20,8 +20,8 @@ local concat		= table.concat;
 local verbosef		= rmHelpers.verbosef;
 
 local function
-fetcher(url)
-	local ok, data = coroutine.yield(url);
+fetcher(url, headers, body)
+	local ok, data = coroutine.yield(url, headers, body);
 
 	if not ok then
 		error(data);
@@ -33,30 +33,57 @@ end
 local useragent = ("curl/%s (Rollmeow)"):
 		  format(cURL.version_info("version"));
 
+local function
+readfunc(ctx, size)
+	if not ctx.bodyWritten then
+		ctx.bodyWritten = true;
+		return ctx.body;
+	end
+end
+
 -- TODO: make it configurable
 local function
-createHandleWithOpt(url)
-	return easy {
-			url = url,
-			[cURL.OPT_TIMEOUT]		= 10,
-			[cURL.OPT_LOW_SPEED_LIMIT]	= 10,
-			[cURL.OPT_LOW_SPEED_TIME]	= 10,
-			[cURL.OPT_FOLLOWLOCATION]	= true,
-			[cURL.OPT_USERAGENT]		= useragent,
-		    };
+createHandleWithOpt(data)
+	local handle = easy {
+				url = data.url,
+				httpheader = data.headers,
+				[cURL.OPT_TIMEOUT]		= 10,
+				[cURL.OPT_LOW_SPEED_LIMIT]	= 10,
+				[cURL.OPT_LOW_SPEED_TIME]	= 10,
+				[cURL.OPT_FOLLOWLOCATION]	= true,
+				[cURL.OPT_USERAGENT]		= useragent,
+			    };
+
+	if data.body then
+		handle:setopt(cURL.OPT_POST, true);
+		handle:setopt_readfunction(readfunc, data);
+	end
+
+	handle.data = data;
+
+	return handle;
 end
 
 local function
 createConn(f, item)
 	local co = coroutine.wrap(f);
-	local url = co(fetcher, item);
+	local url, headers, body = co(fetcher, item);
 
 	if not url then
 		return nil;
 	end
 
-	local handle = createHandleWithOpt(url);
-	handle.data = { co = co, buf = {}, retry = 0, url = url };
+	local data = {
+			co	= co,
+			buf	= {},
+			retry	= 0,
+			url	= url,
+			headers	= headers,
+			body	= body,
+		     };
+
+	local handle = createHandleWithOpt(data);
+
 	return handle;
 end
 
@@ -114,10 +141,13 @@ forEach(connections, f, originList)
 		if type == "error" then
 			if p.retry < 3 then
 				p.retry = p.retry + 1;
+				p.bodyWritten = false;
+
 				verbosef("%s: fetch failed, retry %d",
 					 p.url, p.retry);
-				handle = createHandleWithOpt(p.url);
-				handle.data = p;
+
+				handle = createHandleWithOpt(p);
+
 				multi:add_handle(handle);
 			else
 				p.co(false, tostring(data));
