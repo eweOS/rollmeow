@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/env bash
 
 LUA54="${LUA:-lua5.4}"
 
