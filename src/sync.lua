@@ -15,6 +15,8 @@ local rmPackage		= require "rmpackage";
 local gmatch, gsub	= string.gmatch, string.gsub;
 local insert		= table.insert;
 
+local pcall, fmtErr = pcall, rmHelper.fmtErr;
+
 local function
 allMatches(s, pattern)
 	local pattern1 = gsub(pattern, "%-", "%%-");
@@ -22,7 +24,12 @@ allMatches(s, pattern)
 end
 
 local function
-parseByRegexMatch(content, pkg)
+syncByRegexMatch(fetcher, pkg)
+	local ok, content = pcall(fetcher, pkg.url);
+	if not ok then
+		return fmtErr("fetch function", content);
+	end
+
 	local matches = {};
 
 	if options.showfetched then
@@ -36,15 +43,15 @@ parseByRegexMatch(content, pkg)
 	return matches;
 end
 
-local parserLUTByType <const> = {
-	["regex-match"]		= parseByRegexMatch,
+local syncImplLUTByType <const> = {
+	["regex-match"]		= syncByRegexMatch,
 };
 
 local function
-getParser(pkg)
+getSyncImpl(pkg)
 	local t = rmPackage.type(pkg);
 
-	return t and parserLUTByType[t];
+	return t and syncImplLUTByType[t];
 end
 
 local vCmp = rmVersion.cmp;
@@ -59,24 +66,22 @@ latestVersion(vers)
 	return latest;
 end
 
-local pcall = pcall;
 local vConvert = rmVersion.convert;
-local fmtErr = rmHelper.fmtErr;
 local function
 sync(fetcher, pkg)
-	local ok, content = pcall(fetcher, pkg.url);
-	if not ok then
-		return fmtErr("fetch function", content);
+	local syncImpl = getSyncImpl(pkg);
+	if not syncImpl then
+		return fmtErr("package description", "invalid package type");
 	end
 
-	local parser = getParser(pkg);
-	if not parser then
-		return fmtErr("package description", "invalid package type");
+	local entries, msg = syncImpl(fetcher, pkg);
+	if not entries then
+		return false, msg;
 	end
 
 	local postMatch, filter = pkg.postMatch, pkg.filter;
 	local vers = {};
-	for _, match in ipairs(parser(content, pkg)) do
+	for _, match in ipairs(entries) do
 		if options.showmatch then
 			rmHelper.pwarn(match .. "\n");
 		end
