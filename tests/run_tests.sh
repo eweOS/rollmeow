@@ -42,6 +42,11 @@ runcase() {
 		cmd="sh $tcase.sh"
 	fi
 
+	if [[ "$tcase" =~ ^unit- ]]; then
+		initenv="env LUA_INIT=package.path=package.path..';$SRCDIR/?.lua'"
+		cmd="$initenv $LUA54 $tcase.lua"
+	fi
+
 	dir="$(mktemp -d)"
 	local stdout="$dir/stdout"
 	local stderr="$dir/stderr"
@@ -59,9 +64,12 @@ testcases=(
 	invalid-package-type-follow-and-regex
 	batched-package-with-url
 	# Regression tests
-	sync-manual-checked-package)
+	sync-manual-checked-package
+	# unit tests
+	unit-version-cmp)
 
 export ROLLMEOW="$(dirname "$0")/../src/rollmeow"
+export SRCDIR="$(dirname "$0")"/../src/
 
 for c in "${testcases[@]}"; do
 	printf "Running $c... "
