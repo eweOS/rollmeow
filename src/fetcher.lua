@@ -154,7 +154,6 @@ forEach(connections, f, originList)
 				newConn = true;
 			end
 		elseif type == "done" then
-			insert(p.buf, data);
 			p.co(true, concat(p.buf));
 			newConn = true;
 		elseif type == "data" then
