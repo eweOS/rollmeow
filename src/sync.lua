@@ -10,6 +10,7 @@ local string		= require "string";
 local table		= require "table";
 local rmVersion		= require "version";
 local rmHelper		= require "helpers";
+local rmGitProto	= require "gitproto";
 local rmPackage		= require "rmpackage";
 
 local gmatch, gsub	= string.gmatch, string.gsub;
@@ -18,9 +19,63 @@ local insert		= table.insert;
 local pcall, fmtErr = pcall, rmHelper.fmtErr;
 
 local function
+normalizeRegex(pattern)
+	return gsub(pattern, "%-", "%%-");
+end
+
+local function
 allMatches(s, pattern)
-	local pattern1 = gsub(pattern, "%-", "%%-");
+	local pattern1 = normalizeRegex(pattern);
 	return gmatch(s, pattern1);
+end
+
+local function
+syncByGit(fetcher, pkg)
+	local url = pkg.gitrepo;
+	if url:sub(-1, -1) == '/' then
+		url = url:sub(1, -2);
+	end
+
+	url = url .. "/git-upload-pack";
+
+	local headers = {
+		"Git-Protocol: version=2",
+		"Content-Type: application/x-git-upload-pack-request",
+	};
+	-- ls-refs command, delim packet and flush packet
+	local cmd = '0014command=ls-refs\n00010000';
+
+	local ok, content = pcall(fetcher, url, headers, cmd);
+	if not ok then
+		return fmtErr("fetch function", content);
+	end
+
+	if options.showfetched then
+		-- It's likely that Git responses don't end with a newline.
+		-- Always add one to avoid messing the terminal up.
+		print(content .. '\n');
+	end
+
+	local pktlines, msg = rmGitProto.parsePktLine(content);
+	if not pktlines then
+		return false, msg;
+	end
+
+	local matches = {};
+	local pattern = normalizeRegex(pkg.regex);
+	for _, pktline in ipairs(pktlines) do
+		if type(pktline) ~= "string" then
+			goto continue;
+		end
+
+		local match = pktline:match(pattern);
+		if match then
+			insert(matches, match);
+		end
+::continue::
+	end
+
+	return matches;
 end
 
 local function
@@ -44,6 +99,7 @@ syncByRegexMatch(fetcher, pkg)
 end
 
 local syncImplLUTByType <const> = {
+	["git"]			= syncByGit,
 	["regex-match"]		= syncByRegexMatch,
 };
 

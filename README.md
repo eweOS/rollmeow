@@ -64,7 +64,7 @@ should return a table with fields listed below:
 
 ## Package Description
 
-There're currently three types of packages and rollmeow fetches their versions
+There're currently four types of packages and rollmeow fetches their versions
 differently,
 
 ### Regex-matching packages
@@ -79,9 +79,9 @@ differently,
 }
 ```
 
-This is the main type and these packages come with both `url` and `regex`
-property. rollmeow fetches the URL and synchronize version information based
-on the provided regex.
+This is one of the main types and these packages come with both `url` and
+`regex` property. rollmeow fetches the URL and synchronize version information
+based on the provided regex.
 
 - `url`: URL to fetch
 - `regex`: A Lua regex for matching version strings. `-` modifier is not
@@ -94,6 +94,25 @@ on the provided regex.
 - `note`: An optional note to the package. Not used internally, but rollmeow
   adds special marks on packages with available notes. Could be listed with
   `--info`.
+
+### Gitref-matching packages
+
+```
+{
+		gitrepo:	string
+		regex:		string
+[OPTIONAL]	postMatch:	string function(string match)
+[OPTIONAL]	filter:		boolean function([string] verArray)
+[OPTIONAL]	note:		string
+}
+```
+
+This is one of the main types and these packages come with both `gitrepo` and
+`regex` property. rollmeow fetches Git references in the repository at the
+specified URL and synchronize version information based on the provided regex.
+Only Git protocol v2 through HTTP(S) is supported currently.
+
+Most options follow the same meaning as the regex-matching type.
 
 ### Batched packages
 

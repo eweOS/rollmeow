@@ -150,7 +150,7 @@ doSync(fetcher, name)
 	end
 
 	local t = rmPackage.type(pkg);
-	if t ~= "regex-match" then
+	if t ~= "regex-match" and t ~= "git" then
 		return;
 	end
 

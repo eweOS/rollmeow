@@ -30,13 +30,16 @@ end
 
 local function
 pkgType(pkg)
-	local url, regex, follow = pkg.url, pkg.regex, pkg.follow;
+	local url, gitrepo = pkg.url, pkg.gitrepo;
+	local regex, follow = pkg.regex, pkg.follow;
 
-	if url and regex and not follow then
+	if url and not gitrepo and regex and not follow then
 		return "regex-match";
-	elseif not regex and follow then
+	elseif not url and gitrepo and regex and not follow then
+		return "git";
+	elseif not gitrepo and not regex and follow then
 		return "batched";
-	elseif url and not regex and not follow then
+	elseif url and not gitrepo and not regex and not follow then
 		return "manual";
 	end
 
