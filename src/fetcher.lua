@@ -2,7 +2,7 @@
 --	rollmeow
 --	/src/fetcher.lua
 --	SPDX-License-Identifier: MPL-2.0
---	Copyright (c) 2024 eweOS developers. All rights reserved.
+--	Copyright (c) 2024-2025 eweOS developers. All rights reserved.
 --	Refer to https://os.ewe.moe/ for more information.
 --]]
 
@@ -152,10 +152,14 @@ forEach(connections, f, originList)
 			else
 				p.co(false, tostring(data));
 				newConn = true;
+
+				handle.data = nil;
 			end
 		elseif type == "done" then
 			p.co(true, concat(p.buf));
 			newConn = true;
+
+			handle.data = nil;
 		elseif type == "data" then
 			insert(p.buf, data);
 		end
