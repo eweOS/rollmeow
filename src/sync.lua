@@ -68,6 +68,10 @@ syncByGit(fetcher, pkg)
 			goto continue;
 		end
 
+		if pktline:sub(-1, -1) == '\n' then
+			pktline = pktline:sub(1, -2);
+		end
+
 		local match = pktline:match(pattern);
 		if match then
 			insert(matches, match);

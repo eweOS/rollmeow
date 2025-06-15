@@ -65,6 +65,7 @@ testcases=(
 	batched-package-with-url
 	# Regression tests
 	sync-manual-checked-package
+	sync-git-strip-trailing-newline
 	# unit tests
 	unit-version-cmp
 	unit-pktline)
